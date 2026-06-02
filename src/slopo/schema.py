@@ -1,0 +1,43 @@
+import sqlite3
+
+SCHEMA_VERSION = 1
+
+
+# Bump SCHEMA_VERSION whenever schema changes
+def create_schema(conn: sqlite3.Connection) -> None:
+    conn.executescript("""
+        CREATE TABLE schema_version (
+            version INTEGER PRIMARY KEY
+        );
+
+        CREATE TABLE metadata (
+            id                         INTEGER PRIMARY KEY CHECK (id = 1),
+            source_dir                 TEXT NOT NULL,
+            embedding_model            TEXT NOT NULL,
+            embedding_dimensions       INTEGER NOT NULL,
+            body_node_count_threshold  INTEGER NOT NULL
+        );
+
+        CREATE TABLE files (
+            id    INTEGER PRIMARY KEY,
+            path  TEXT NOT NULL UNIQUE,
+            mtime REAL NOT NULL
+        );
+
+        CREATE TABLE code_units (
+            id               INTEGER PRIMARY KEY,
+            file_id          INTEGER NOT NULL REFERENCES files(id),
+            name             TEXT NOT NULL,
+            body             TEXT NOT NULL,
+            start_line       INTEGER NOT NULL,
+            end_line         INTEGER NOT NULL,
+            body_node_count  INTEGER NOT NULL,
+            body_hash        TEXT NOT NULL,
+            embedding        BLOB
+        );
+
+        CREATE TABLE excluded_units (
+            unit_id  INTEGER PRIMARY KEY REFERENCES code_units(id)
+        );
+    """)
+    conn.execute("INSERT INTO schema_version (version) VALUES (?)", (SCHEMA_VERSION,))

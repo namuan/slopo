@@ -3,3 +3,96 @@
 # Slopo
 
 A lightweight CLI tool for semantic code duplication detection using embedding models.
+
+It focuses on the similar code that is hardest to detect and most harmful: snippets that differ in form but are close in meaning, sitting far apart in the codebase, often spread across different modules or separated within a large file. Exact copy-paste is easy to spot by other tools, and duplicates that are close together are easy to spot by humans or AI.
+
+### Supported languages
+
+Python, TypeScript, JavaScript, Java, Kotlin, C#, Go, Rust
+
+## How it works
+
+It takes a different approach than typical duplication detection. For every code unit, it calculates an embedding that represents the meaning. It then looks for pairs of code units whose meaning is close.
+
+The result is clusters of similar code units, ranked by similarity and by distance in the codebase. These clusters are meant as input for your AI coding agent, which can check whether a cluster is a real duplicate. Reviewed clusters can be marked as ignored or passed on for refactoring.
+
+## Quick start
+
+### Installation
+
+```bash
+uv tool install slopo
+```
+
+`uv` ([installation guide](https://docs.astral.sh/uv/getting-started/installation/)) is a modern Python package manager allowing you to install this tool user-wide in a virtual environment and clean uninstallation with `uv tool uninstall slopo`.
+The tool will be installed from the [Python Package Index](https://pypi.org/project/slopo/).
+
+### Setup
+
+Run `slopo init` to create a config file template containing further instructions. Only the directory with code for analysis and embedding model configuration is required.
+
+### Embedding model
+
+Embeddings are calculated using an external provider. For best results, consider models dedicated to code, e.g. [Voyage AI](https://docs.voyageai.com/docs/embeddings) (it works fine with low dimensions like `512`).
+
+You can use any model provider compatible with LiteLLM, [see details here](https://docs.litellm.ai/docs/embedding/supported_embedding).
+
+The provider API key can be set as an environment variable for better security.
+
+### Analysis
+
+Run `slopo show-config` to validate your config and show all configurable parameters, most are optional with sensible defaults.
+
+Now you are ready to index code, calculate embeddings and generate a report:
+
+```bash
+slopo index
+slopo embed
+slopo analyze
+```
+
+## Example workflow
+
+This section demonstrates how Slopo can be used in a real development workflow.
+
+It utilizes incremental re-indexing (update index with changed files only) and `slopo.ignore.txt` to discard already reviewed clusters.
+
+1. Create your first analysis and check results. You will notice `index.md` containing a list of all clusters and cluster details per file.
+2. You may want to exclude some directories or file patterns, usually excluding tests is a good idea. You can also tune thresholds if the result is too big or too small.
+3. Once satisfied with analysis results, ask your AI coding agent to filter out clusters that are not real duplicates. This is a common case because not every similar code is a duplication to act on. Ask the AI agent to add discarded cluster hashes to `slopo.ignore.txt`.
+4. Re-run the analysis to generate a report without reviewed clusters. This is a basis for refactoring, which can be done by an AI agent.
+5. `ignore` file can be committed to your Git repository and reused cross-team. New and modified clusters will reappear in the report. A configuration file without an API key can also be committed. Don't commit `slopo.db`, this is your local data.
+
+## Configuration
+
+Run `slopo --help` and `slopo show-config` to explore it by yourself anytime.
+
+Most configuration is done with a configuration file with two exceptions:
+1. The location of the configuration file can be overridden with the `--config` option.
+2. The API key can be set with the `SLOPO_EMBEDDING_API_KEY` environment variable, also picked up from a `.env` file in the current directory.
+
+**Be aware that some parameters can't be changed after first indexing.** You need to remove `slopo.db` and index/embed from the beginning: `source_dir`, `embedding_model`, `embedding_dimensions`, `body_node_count_threshold`.
+
+### All configurable parameters
+
+- `source_dir`: Source directory with code to index, absolute or relative path.
+- `source_dir_exclude`: .gitignore-style patterns to exclude from indexing.
+- `db_file`: SQLite database file with tool data.
+- `report_dir`: Output directory for analysis report.
+- `ignore_file`: Text file with ignored clusters.
+- `embedding_model`: Embedding model name in LiteLLM format.
+- `embedding_dimensions`: Embedding dimensions compatible with the used model.
+- `embedding_api_key`: API key for embedding provider. Optional if configured with an environment variable.
+- `embedding_batch_size` and `embedding_batch_chars`: Requests to the embedding API are batched for performance. Defaults are fine for most cases.
+- `similarity_threshold`: Controls minimal cosine similarity between embeddings.
+- `rerank_threshold`: Controls minimal similarity after applying a boost reflecting distance in the codebase.
+- `body_node_count_threshold`: Number of AST nodes inside the body (excluding signature and annotations). This value reflects the minimum code complexity of the included code unit, more precise than text length. Increase if you notice unwanted, too-small code units in the report.
+- `exclude_exact_duplicates`: (`true`/`false`) Exact duplicates usually add a noise in analysis, so they are excluded by default. You can include them with this option.
+
+### Ranking thresholds
+
+Similar code units are filtered in two passes, each with its own configurable threshold. The pipeline is as follows:
+
+1. `similarity_threshold` filters out code unit pairs whose embeddings are not similar enough. The calculated value is cosine similarity ranging from `-1` to `1` where `1` means the same.
+2. Similar pairs are grouped in clusters.
+3. Units in clusters are reranked after applying a boost. Boost is calculated based on the number of directory hops required to reach the other file in the pair (max. 15%). If they are in the same file, the boost is calculated based on distance in number of lines (max. 10%). `rerank_threshold` filters out clusters whose highest-scoring pair is not high enough.
