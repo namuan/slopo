@@ -29,7 +29,7 @@ from slopo.analysis.command import run_analyze
 load_dotenv()
 
 app = typer.Typer(
-    help="Embedding-based semantic code duplication detector.",
+    help="Embedding-based code duplication detector",
     no_args_is_help=True,
     add_completion=False,
 )

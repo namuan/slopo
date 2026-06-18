@@ -1,14 +1,14 @@
 [project]
 name = "slopo"
 version = "0.1.0"
-description = "Detect semantic code duplication using embeddings"
+description = "Embedding-based code duplication detector"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
 authors = [{ name = "Rafal Kochanowski" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "litellm~=1.87.0",
+    "litellm~=1.89.2",
     "numpy~=2.4.6",
     "pathspec~=1.1.1",
     "python-dotenv~=1.2.2",
@@ -22,7 +22,7 @@ dependencies = [
     "tree-sitter-python~=0.25.0",
     "tree-sitter-rust~=0.24.2",
     "tree-sitter-typescript~=0.23.2",
-    "typer~=0.26.5",
+    "typer~=0.26.7",
 ]
 
 [project.urls]
@@ -42,6 +42,6 @@ extend-exclude = ["tests/indexing/parsing/lang/fixtures"]
 [dependency-groups]
 dev = [
     "mypy>=2.1.0",
-    "pytest>=9.0.3",
-    "ruff>=0.15.15",
+    "pytest>=9.1.0",
+    "ruff>=0.15.17",
 ]

@@ -2,9 +2,11 @@
 
 # Slopo
 
-A lightweight CLI tool for semantic code duplication detection using embedding models.
+A lightweight CLI tool for detecting non-exact code duplication using embedding models.
 
-It focuses on the similar code that is hardest to detect and most harmful: snippets that differ in form but are close in meaning, sitting far apart in the codebase, often spread across different modules or separated within a large file. Exact copy-paste is easy to spot by other tools, and duplicates that are close together are easy to spot by humans or AI.
+It focuses on the similar code that is hardest to detect and most harmful: snippets written similarly, sitting far apart in the codebase, often spread across different modules or separated within a large file. Exact copy-paste is easy to spot by other tools, and duplicates that are close together are easy to spot by humans or AI.
+
+For more high-level description of the problem see [slopo.dev](https://slopo.dev/).
 
 ### Supported languages
 
@@ -12,7 +14,7 @@ Python, TypeScript, JavaScript, Java, Kotlin, C#, Go, Rust
 
 ## How it works
 
-It takes a different approach than typical duplication detection. For every code unit, it calculates an embedding that represents the meaning. It then looks for pairs of code units whose meaning is close.
+It takes a different approach than typical duplication detection. For every code unit, it calculates an embedding, then looks for pairs whose embeddings are close. Similar code is not necessarily a duplicate, so each pair is a potential duplicate to confirm. Code doing the same thing but implemented in a completely different way produces distant embeddings and won't be detected.
 
 The result is clusters of similar code units, ranked by similarity and by distance in the codebase. These clusters are meant as input for your AI coding agent, which can check whether a cluster is a real duplicate. Reviewed clusters can be marked as ignored or passed on for refactoring.
 
@@ -24,8 +26,7 @@ The result is clusters of similar code units, ranked by similarity and by distan
 uv tool install slopo
 ```
 
-`uv` ([installation guide](https://docs.astral.sh/uv/getting-started/installation/)) is a modern Python package manager allowing you to install this tool user-wide in a virtual environment and clean uninstallation with `uv tool uninstall slopo`.
-The tool will be installed from the [Python Package Index](https://pypi.org/project/slopo/).
+This command uses `uv` ([installing uv](https://docs.astral.sh/uv/getting-started/installation/)), a Python package manager, to install Slopo from [PyPI](https://pypi.org/project/slopo/) in an isolated virtual environment. No need to get Python separately.
 
 ### Setup
 
