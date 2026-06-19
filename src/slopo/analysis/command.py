@@ -1,11 +1,15 @@
 import sqlite3
 
+import numpy as np
+
 from slopo.analysis.clustering import build_clusters, filter_clusters, reorder_clusters
-from slopo.analysis.db import load_units
+from slopo.analysis.db import count_exact_copies, load_duplicate_hashes, load_units
+from slopo.analysis.dedup import fold_exact_duplicates
 from slopo.analysis.ignore import cluster_hash, ensure_ignore_file, load_ignored
+from slopo.analysis.models import Cluster, UnitRecord
 from slopo.analysis.overlap import exclude_overlapping_pairs
 from slopo.analysis.rerank import rerank_all_clusters
-from slopo.analysis.report import write_report
+from slopo.analysis.report.filesystem import write_report
 from slopo.analysis.similarity import find_similar_pairs
 from slopo.config import Config
 from slopo.embedding.db import load_embeddings
@@ -48,6 +52,8 @@ def run_analyze(
     clusters = reorder_clusters(clusters, reranked_pairs)
     clusters = filter_clusters(clusters, cfg.rerank_threshold)
 
+    clusters, duplicates = fold_exact_duplicates(clusters, units)
+
     if not clusters:
         log(
             "No similar code units found for configured similarity and rerank thresholds."
@@ -68,10 +74,44 @@ def run_analyze(
         log("All similar code clusters are in the ignore list.")
         return
 
-    write_report(clusters, units, cfg.report_dir)
+    write_report(clusters, units, cfg.report_dir, duplicates)
     log(f"Report written to {cfg.report_dir} directory.")
 
-    flagged = len({uid for c in clusters for uid in c.unit_ids})
-    total = len(embeddings)
+    _report_ratios(conn, embeddings, clusters, duplicates, units, log)
+
+
+def _report_ratios(
+    conn: sqlite3.Connection,
+    embeddings: dict[int, np.ndarray],
+    clusters: list[Cluster],
+    duplicates: dict[int, list[UnitRecord]],
+    units: dict[int, UnitRecord],
+    log: ProgressReporter,
+) -> None:
+    duplicate_hashes = load_duplicate_hashes(conn)
+    exact_copies = count_exact_copies(conn)
+
+    kept = {uid for c in clusters for uid in c.unit_ids}
+    folded = {dup.unit_id for dups in duplicates.values() for dup in dups}
+    flagged_with = kept | folded
+    flagged_without = {
+        uid for uid in flagged_with if units[uid].body_hash not in duplicate_hashes
+    }
+
+    total_with = len(embeddings)
+    total_without = total_with - exact_copies
+
+    log(f"Exact copies: {exact_copies} of {total_with} units.")
+    log(
+        "Similarity ratio (excluding exact copies):"
+        f" {_ratio(len(flagged_without), total_without)}"
+    )
+    log(
+        "Similarity ratio (including exact copies):"
+        f" {_ratio(len(flagged_with), total_with)}"
+    )
+
+
+def _ratio(flagged: int, total: int) -> str:
     ratio = flagged / total if total > 0 else 0.0
-    log(f"Similarity ratio: {ratio:.2%} ({flagged}/{total} units flagged as similar)")
+    return f"{ratio:.2%} ({flagged}/{total} units flagged as similar)"

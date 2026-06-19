@@ -1,6 +1,6 @@
 [project]
 name = "slopo"
-version = "0.1.0"
+version = "0.2.0"
 description = "Embedding-based code duplication detector"
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSE"]
@@ -42,6 +42,6 @@ extend-exclude = ["tests/indexing/parsing/lang/fixtures"]
 [dependency-groups]
 dev = [
     "mypy>=2.1.0",
-    "pytest>=9.1.0",
-    "ruff>=0.15.17",
+    "pytest>=9.1.1",
+    "ruff>=0.15.18",
 ]

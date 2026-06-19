@@ -1,6 +1,6 @@
 import sqlite3
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 
 # Bump SCHEMA_VERSION whenever schema changes
@@ -32,12 +32,12 @@ def create_schema(conn: sqlite3.Connection) -> None:
             start_line       INTEGER NOT NULL,
             end_line         INTEGER NOT NULL,
             body_node_count  INTEGER NOT NULL,
-            body_hash        TEXT NOT NULL,
-            embedding        BLOB
+            body_hash        TEXT NOT NULL
         );
 
-        CREATE TABLE excluded_units (
-            unit_id  INTEGER PRIMARY KEY REFERENCES code_units(id)
+        CREATE TABLE embeddings (
+            body_hash  TEXT PRIMARY KEY,
+            embedding  BLOB NOT NULL
         );
     """)
     conn.execute("INSERT INTO schema_version (version) VALUES (?)", (SCHEMA_VERSION,))

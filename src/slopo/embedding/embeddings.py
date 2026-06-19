@@ -12,6 +12,6 @@ def embed_units(batch: list[UnembeddedUnit], config: Config) -> list[EmbeddedUni
         api_key=config.embedding_api_key,
     )
     return [
-        EmbeddedUnit(unit_id=unit.unit_id, vector=item["embedding"])
+        EmbeddedUnit(body_hash=unit.body_hash, vector=item["embedding"])
         for unit, item in zip(batch, response.data)
     ]

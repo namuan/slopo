@@ -52,7 +52,6 @@ class Config:
     similarity_threshold: float
     rerank_threshold: float
     body_node_count_threshold: int
-    exclude_exact_duplicates: bool
 
 
 def load_config(path: Path) -> Config:
@@ -104,9 +103,6 @@ def parse_config(raw: Any, source: str) -> Config:
         ),
         body_node_count_threshold=_optional_positive_int(
             raw, "body_node_count_threshold", source, default=10
-        ),
-        exclude_exact_duplicates=_optional_bool(
-            raw, "exclude_exact_duplicates", source, default=True
         ),
     )
 
@@ -213,15 +209,6 @@ def _optional_positive_float(
     if value is None:
         return default
     return _ensure_positive_float(value, key, source)
-
-
-def _optional_bool(raw: dict[str, Any], key: str, source: str, default: bool) -> bool:
-    value = raw.get(key)
-    if value is None:
-        return default
-    if not isinstance(value, bool):
-        raise ConfigError(f"{source}: '{key}' must be a boolean, got {value!r}")
-    return value
 
 
 def _ensure_positive_int(value: Any, key: str, source: str) -> int:

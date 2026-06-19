@@ -21,11 +21,6 @@ def delete_files(conn: sqlite3.Connection, file_ids: list[int]) -> None:
         return
     id_placeholders = ",".join("?" * len(file_ids))
     conn.execute(
-        "DELETE FROM excluded_units WHERE unit_id IN"
-        f" (SELECT id FROM code_units WHERE file_id IN ({id_placeholders}))",
-        file_ids,
-    )
-    conn.execute(
         f"DELETE FROM code_units WHERE file_id IN ({id_placeholders})", file_ids
     )
     conn.execute(f"DELETE FROM files WHERE id IN ({id_placeholders})", file_ids)
@@ -53,12 +48,14 @@ def upsert_file(conn: sqlite3.Connection, path: Path, mtime: float) -> UpsertRes
 
 
 def delete_file_units(conn: sqlite3.Connection, file_id: int) -> None:
-    conn.execute(
-        "DELETE FROM excluded_units WHERE unit_id IN"
-        " (SELECT id FROM code_units WHERE file_id = ?)",
-        (file_id,),
-    )
     conn.execute("DELETE FROM code_units WHERE file_id = ?", (file_id,))
+
+
+def prune_orphan_embeddings(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        "DELETE FROM embeddings"
+        " WHERE body_hash NOT IN (SELECT body_hash FROM code_units)"
+    )
 
 
 def insert_file_units(

@@ -1,9 +1,9 @@
-import re
 from datetime import datetime
 from pathlib import Path
 
 from slopo.analysis.ignore import cluster_hash
 from slopo.analysis.models import Cluster, UnitRecord
+from slopo.analysis.report.naming import cluster_filename
 
 _LANG_MAP = {
     ".cs": "csharp",
@@ -16,34 +16,23 @@ _LANG_MAP = {
     ".ts": "typescript",
 }
 
-_CLUSTER_FILE_RE = re.compile(r"cluster-\d+\.md")
 
-
-def write_report(
-    clusters: list[Cluster], units: dict[int, UnitRecord], output_dir: Path
-) -> None:
-    output_dir.mkdir(parents=True, exist_ok=True)
-    _clean_report_dir(output_dir)
-
-    total = len(clusters)
-    (output_dir / "index.md").write_text(
-        build_index_markdown(clusters, units), encoding="utf-8"
-    )
-    for i, cluster in enumerate(clusters, 1):
-        filename = cluster_filename(i, total)
-        (output_dir / filename).write_text(
-            build_cluster_markdown(i, cluster, units), encoding="utf-8"
-        )
-
-
-def build_index_markdown(clusters: list[Cluster], units: dict[int, UnitRecord]) -> str:
+def build_index_markdown(
+    clusters: list[Cluster],
+    units: dict[int, UnitRecord],
+    duplicates: dict[int, list[UnitRecord]],
+    generated_at: datetime,
+) -> str:
     total = len(clusters)
     headers = ["Cluster", "Hash", "Score", "Code units", "Unique files"]
     rows: list[list[str]] = []
     for i, cluster in enumerate(clusters, 1):
         link = f"[Cluster {i}]({cluster_filename(i, total)})"
-        unit_count = len(cluster.unit_ids)
-        unique_files = len({units[uid].file_path for uid in cluster.unit_ids})
+        records = [units[uid] for uid in cluster.unit_ids]
+        for uid in cluster.unit_ids:
+            records.extend(duplicates.get(uid, []))
+        unit_count = len(records)
+        unique_files = len({record.file_path for record in records})
         rows.append(
             [
                 link,
@@ -53,37 +42,31 @@ def build_index_markdown(clusters: list[Cluster], units: dict[int, UnitRecord]) 
                 str(unique_files),
             ]
         )
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = generated_at.strftime("%Y-%m-%d %H:%M:%S")
     return f"Generated {timestamp}\n\n{_format_table(headers, rows)}"
 
 
 def build_cluster_markdown(
-    number: int, cluster: Cluster, units: dict[int, UnitRecord]
+    number: int,
+    cluster: Cluster,
+    units: dict[int, UnitRecord],
+    duplicates: dict[int, list[UnitRecord]],
 ) -> str:
     lines: list[str] = [
         f"## ({number}) score {_similarity_range(cluster)}\n",
         f"Hash: `{cluster_hash(cluster, units)}`\n",
     ]
     for unit_id in cluster.unit_ids:
+        lines.append("---\n")
         unit = units[unit_id]
         lang = _lang_tag(unit.file_path)
-        lines.append(f"`{unit.file_path}` lines {unit.start_line}-{unit.end_line}\n")
-        lines.append(f"```{lang}\n{unit.body}\n```\n")
+        records = [unit, *duplicates.get(unit_id, [])]
+        for record in sorted(records, key=lambda r: r.file_path):
+            lines.append(
+                f"- `{record.file_path}` lines {record.start_line}-{record.end_line}"
+            )
+        lines.append(f"\n```{lang}\n{unit.body}\n```\n")
     return "\n".join(lines)
-
-
-def cluster_filename(number: int, total: int) -> str:
-    width = len(str(total))
-    return f"cluster-{number:0{width}d}.md"
-
-
-def _clean_report_dir(output_dir: Path) -> None:
-    index = output_dir / "index.md"
-    if index.is_file():
-        index.unlink()
-    for path in output_dir.glob("cluster-*.md"):
-        if _CLUSTER_FILE_RE.fullmatch(path.name):
-            path.unlink()
 
 
 def _format_table(headers: list[str], rows: list[list[str]]) -> str:

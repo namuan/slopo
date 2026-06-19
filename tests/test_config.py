@@ -39,7 +39,6 @@ def test_returns_config_with_defaults_when_only_required_fields_present():
     assert cfg.similarity_threshold == 0.92
     assert cfg.rerank_threshold == 0.94
     assert cfg.body_node_count_threshold == 10
-    assert cfg.exclude_exact_duplicates is True
 
 
 def test_overrides_defaults_when_optional_fields_present():

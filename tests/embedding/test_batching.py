@@ -5,7 +5,9 @@ from slopo.embedding.models import UnembeddedUnit
 
 
 def _units(*bodies: str) -> list[UnembeddedUnit]:
-    return [UnembeddedUnit(unit_id=i, body=body) for i, body in enumerate(bodies)]
+    return [
+        UnembeddedUnit(body_hash=str(i), body=body) for i, body in enumerate(bodies)
+    ]
 
 
 def test_empty_input():

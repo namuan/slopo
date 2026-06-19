@@ -10,7 +10,7 @@ def trim_to_char_limit(
         unit_chars = len(unit.body)
         if unit_chars > max_chars:
             raise ValueError(
-                f"Unit {unit.unit_id} body ({unit_chars} chars) exceeds max_chars ({max_chars})"
+                f"Unit body ({unit_chars} chars) exceeds max_chars ({max_chars})"
             )
         if chars + unit_chars > max_chars:
             break

@@ -19,7 +19,6 @@ _CONFIG = Config(
     similarity_threshold=0.9,
     rerank_threshold=0.93,
     body_node_count_threshold=10,
-    exclude_exact_duplicates=True,
 )
 
 
@@ -30,21 +29,21 @@ def _mock_response(vectors: list[list[float]]) -> MagicMock:
 
 
 def test_single_unit_mapped():
-    units = [UnembeddedUnit(unit_id=7, body="def foo(): pass")]
+    units = [UnembeddedUnit(body_hash="h7", body="def foo(): pass")]
     with patch(
         "litellm.embedding",
         return_value=_mock_response([[1.0, 2.0, 3.0]]),
     ):
         result = embed_units(units, _CONFIG)
 
-    assert result == [EmbeddedUnit(unit_id=7, vector=[1.0, 2.0, 3.0])]
+    assert result == [EmbeddedUnit(body_hash="h7", vector=[1.0, 2.0, 3.0])]
 
 
 def test_multiple_units_preserve_order():
     units = [
-        UnembeddedUnit(unit_id=1, body="def foo(): pass"),
-        UnembeddedUnit(unit_id=2, body="def bar(): pass"),
-        UnembeddedUnit(unit_id=3, body="def baz(): pass"),
+        UnembeddedUnit(body_hash="h1", body="def foo(): pass"),
+        UnembeddedUnit(body_hash="h2", body="def bar(): pass"),
+        UnembeddedUnit(body_hash="h3", body="def baz(): pass"),
     ]
     with patch(
         "litellm.embedding",
@@ -55,7 +54,7 @@ def test_multiple_units_preserve_order():
         result = embed_units(units, _CONFIG)
 
     assert result == [
-        EmbeddedUnit(unit_id=1, vector=[1.0, 0.0, 0.0]),
-        EmbeddedUnit(unit_id=2, vector=[0.0, 1.0, 0.0]),
-        EmbeddedUnit(unit_id=3, vector=[0.0, 0.0, 1.0]),
+        EmbeddedUnit(body_hash="h1", vector=[1.0, 0.0, 0.0]),
+        EmbeddedUnit(body_hash="h2", vector=[0.0, 1.0, 0.0]),
+        EmbeddedUnit(body_hash="h3", vector=[0.0, 0.0, 1.0]),
     ]

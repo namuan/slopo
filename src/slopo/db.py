@@ -48,25 +48,6 @@ def create_db(cfg: Config) -> sqlite3.Connection:
     return conn
 
 
-def rebuild_excluded_units(conn: sqlite3.Connection) -> int:
-    clear_excluded_units(conn)
-    conn.execute(
-        """
-        INSERT INTO excluded_units (unit_id)
-        SELECT id FROM code_units
-        WHERE body_hash IN (
-            SELECT body_hash FROM code_units
-            GROUP BY body_hash HAVING COUNT(*) > 1
-        )
-        """
-    )
-    return conn.execute("SELECT COUNT(*) FROM excluded_units").fetchone()[0]
-
-
-def clear_excluded_units(conn: sqlite3.Connection) -> None:
-    conn.execute("DELETE FROM excluded_units")
-
-
 def verify_source_dir(conn: sqlite3.Connection, source_dir: Path) -> None:
     resolved = str(source_dir.resolve())
     stored = conn.execute("SELECT source_dir FROM metadata WHERE id = 1").fetchone()

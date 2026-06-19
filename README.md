@@ -88,7 +88,13 @@ Most configuration is done with a configuration file with two exceptions:
 - `similarity_threshold`: Controls minimal cosine similarity between embeddings.
 - `rerank_threshold`: Controls minimal similarity after applying a boost reflecting distance in the codebase.
 - `body_node_count_threshold`: Number of AST nodes inside the body (excluding signature and annotations). This value reflects the minimum code complexity of the included code unit, more precise than text length. Increase if you notice unwanted, too-small code units in the report.
-- `exclude_exact_duplicates`: (`true`/`false`) Exact duplicates usually add a noise in analysis, so they are excluded by default. You can include them with this option.
+
+### Exact-copy duplicates
+
+The main goal of this tool is to detect non-exact code duplication, but exact copies (identical code at multiple paths) are reported too, just handled a little differently from merely similar code:
+
+- The report shows the code once, listing every path where it appears, instead of repeating identical snippets.
+- The `analyze` command reports the "similarity ratio" (the share of code units flagged as similar) in two variants: including and excluding exact copies.
 
 ### Ranking thresholds
 

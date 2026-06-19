@@ -1,6 +1,11 @@
 import sqlite3
 
-from slopo.indexing.db import delete_file_units, delete_files, insert_file_units
+from slopo.indexing.db import (
+    delete_file_units,
+    delete_files,
+    insert_file_units,
+    prune_orphan_embeddings,
+)
 from slopo.indexing.parsing.base import CodeUnit
 
 
@@ -50,26 +55,42 @@ def test_inserts_all_units_with_sequential_ids(conn: sqlite3.Connection):
     assert rows == [(1, "increment"), (2, "decrement")]
 
 
-def test_deletes_file_whose_units_are_excluded(conn: sqlite3.Connection):
+def test_deletes_file_and_its_units(conn: sqlite3.Connection):
     file_id = _insert_file(conn)
     insert_file_units(conn, file_id, [CodeUnit("dup", "body", 1, 2, 3, "hash")])
-    unit_id = conn.execute("SELECT id FROM code_units").fetchone()[0]
-    conn.execute("INSERT INTO excluded_units (unit_id) VALUES (?)", (unit_id,))
 
     delete_files(conn, [file_id])
 
     assert conn.execute("SELECT COUNT(*) FROM files").fetchone()[0] == 0
     assert conn.execute("SELECT COUNT(*) FROM code_units").fetchone()[0] == 0
-    assert conn.execute("SELECT COUNT(*) FROM excluded_units").fetchone()[0] == 0
 
 
-def test_deletes_units_of_modified_file_that_are_excluded(conn: sqlite3.Connection):
+def test_deletes_units_of_modified_file(conn: sqlite3.Connection):
     file_id = _insert_file(conn)
     insert_file_units(conn, file_id, [CodeUnit("dup", "body", 1, 2, 3, "hash")])
-    unit_id = conn.execute("SELECT id FROM code_units").fetchone()[0]
-    conn.execute("INSERT INTO excluded_units (unit_id) VALUES (?)", (unit_id,))
 
     delete_file_units(conn, file_id)
 
     assert conn.execute("SELECT COUNT(*) FROM code_units").fetchone()[0] == 0
-    assert conn.execute("SELECT COUNT(*) FROM excluded_units").fetchone()[0] == 0
+
+
+def test_prune_removes_embeddings_with_no_remaining_units(conn: sqlite3.Connection):
+    conn.execute(
+        "INSERT INTO embeddings (body_hash, embedding) VALUES ('gone', X'0000803f')"
+    )
+
+    prune_orphan_embeddings(conn)
+
+    assert conn.execute("SELECT COUNT(*) FROM embeddings").fetchone()[0] == 0
+
+
+def test_prune_keeps_embedding_while_a_unit_shares_its_hash(conn: sqlite3.Connection):
+    file_id = _insert_file(conn)
+    insert_file_units(conn, file_id, [CodeUnit("a", "body", 1, 2, 3, "shared")])
+    conn.execute(
+        "INSERT INTO embeddings (body_hash, embedding) VALUES ('shared', X'0000803f')"
+    )
+
+    prune_orphan_embeddings(conn)
+
+    assert conn.execute("SELECT COUNT(*) FROM embeddings").fetchone()[0] == 1

@@ -7,6 +7,7 @@ from slopo.indexing.db import (
     delete_files,
     insert_file_units,
     list_indexed_paths,
+    prune_orphan_embeddings,
     upsert_file,
 )
 from slopo.indexing.scanner import scan_directory
@@ -45,6 +46,8 @@ def sync_index(
 
     removed_ids = list(previously_indexed.values())
     delete_files(conn, removed_ids)
+
+    prune_orphan_embeddings(conn)
 
     return SyncStats(
         indexed_files=indexed_files,
