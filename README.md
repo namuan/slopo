@@ -89,12 +89,7 @@ Most configuration is done with a configuration file with two exceptions:
 - `rerank_threshold`: Controls minimal similarity after applying a boost reflecting distance in the codebase.
 - `body_node_count_threshold`: Number of AST nodes inside the body (excluding signature and annotations). This value reflects the minimum code complexity of the included code unit, more precise than text length. Increase if you notice unwanted, too-small code units in the report.
 
-### Exact-copy duplicates
-
-The main goal of this tool is to detect non-exact code duplication, but exact copies (identical code at multiple paths) are reported too, just handled a little differently from merely similar code:
-
-- The report shows the code once, listing every path where it appears, instead of repeating identical snippets.
-- The `analyze` command reports the "similarity ratio" (the share of code units flagged as similar) in two variants: including and excluding exact copies.
+## Details
 
 ### Ranking thresholds
 
@@ -103,3 +98,10 @@ Similar code units are filtered in two passes, each with its own configurable th
 1. `similarity_threshold` filters out code unit pairs whose embeddings are not similar enough. The calculated value is cosine similarity ranging from `-1` to `1` where `1` means the same.
 2. Similar pairs are grouped in clusters.
 3. Units in clusters are reranked after applying a boost. Boost is calculated based on the number of directory hops required to reach the other file in the pair (max. 15%). If they are in the same file, the boost is calculated based on distance in number of lines (max. 10%). `rerank_threshold` filters out clusters whose highest-scoring pair is not high enough.
+
+### Exact-copy duplicates
+
+The main goal of this tool is to detect non-exact code duplication, but exact copies (identical code at multiple paths) are reported too, just handled a little differently from merely similar code:
+
+- The report shows the code once, listing every path where it appears, instead of repeating identical snippets.
+- The `analyze` command reports the "similarity ratio" (the share of code units flagged as similar) in two variants: including and excluding exact copies.
