@@ -18,6 +18,12 @@ It takes a different approach than typical duplication detection. For every code
 
 The result is clusters of similar code units, ranked by similarity and by distance in the codebase. These clusters are meant as input for your AI coding agent, which can check whether a cluster is a real duplicate. Reviewed clusters can be marked as ignored or passed on for refactoring.
 
+### Example report
+
+See [doc/example-report](doc/example-report) generated from Slopo code, `src` directory, git tag `v0.2.0`.
+
+This example confirmed that code parsers for each language have a lot of duplication, some are exact-copy, some are similar variants. It needs to be refactored.
+
 ## Quick start
 
 ### Installation
@@ -52,7 +58,7 @@ slopo embed
 slopo analyze
 ```
 
-## Example workflow
+## Real workflow
 
 This section demonstrates how Slopo can be used in a real development workflow.
 
