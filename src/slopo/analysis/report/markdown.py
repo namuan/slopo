@@ -7,6 +7,7 @@ from slopo.analysis.report.naming import cluster_filename
 
 _LANG_MAP = {
     ".cs": "csharp",
+    ".ex": "elixir",
     ".go": "go",
     ".java": "java",
     ".js": "javascript",

@@ -3,6 +3,7 @@ from pathlib import Path
 from slopo.indexing.parsing.lang import (
     javascript,
     csharp,
+    elixir,
     rust,
     go,
     php,
@@ -15,6 +16,7 @@ from slopo.indexing.parsing.base import CodeParser
 
 _REGISTRY: dict[str, CodeParser] = {
     ".cs": csharp.parse,
+    ".ex": elixir.parse,
     ".go": go.parse,
     ".java": java.parse,
     ".js": javascript.parse,
