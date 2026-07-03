@@ -1,8 +1,13 @@
 import sqlite3
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 from slopo.config import Config
 from slopo.schema import SCHEMA_VERSION, create_schema
+
+# Stay under the 999 SQLITE_MAX_VARIABLE_NUMBER default of pre-3.32 SQLite,
+# leaving headroom for other bound parameters in the same statement.
+_MAX_SQL_VARIABLES = 900
 
 
 class DatabaseNotFoundError(Exception):
@@ -53,6 +58,11 @@ def verify_source_dir(conn: sqlite3.Connection, source_dir: Path) -> None:
     stored = conn.execute("SELECT source_dir FROM metadata WHERE id = 1").fetchone()
     if stored[0] != resolved:
         raise ConfigurationMismatchError("source_dir", stored[0], resolved)
+
+
+def chunked(ids: Sequence[int]) -> Iterator[list[int]]:
+    for start in range(0, len(ids), _MAX_SQL_VARIABLES):
+        yield list(ids[start : start + _MAX_SQL_VARIABLES])
 
 
 def _connect(path: Path) -> sqlite3.Connection:

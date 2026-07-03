@@ -1,3 +1,4 @@
+import platform
 from dataclasses import fields
 from pathlib import Path
 from importlib.metadata import version
@@ -39,7 +40,9 @@ _DEFAULT_CONFIG = Path("slopo.conf.yaml")
 
 def _version_callback(value: bool) -> None:
     if value:
-        typer.echo(version("slopo"))
+        typer.echo(f"Slopo {version('slopo')}")
+        typer.echo(f"Python {platform.python_version()}")
+        typer.echo(f"SQLite {sqlite3.sqlite_version}")
         raise typer.Exit()
 
 

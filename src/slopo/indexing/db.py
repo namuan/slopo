@@ -2,6 +2,7 @@ import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 
+from slopo.db import chunked
 from slopo.indexing.parsing.base import CodeUnit
 
 
@@ -17,13 +18,12 @@ def list_indexed_paths(conn: sqlite3.Connection) -> dict[str, int]:
 
 
 def delete_files(conn: sqlite3.Connection, file_ids: list[int]) -> None:
-    if not file_ids:
-        return
-    id_placeholders = ",".join("?" * len(file_ids))
-    conn.execute(
-        f"DELETE FROM code_units WHERE file_id IN ({id_placeholders})", file_ids
-    )
-    conn.execute(f"DELETE FROM files WHERE id IN ({id_placeholders})", file_ids)
+    for chunk in chunked(file_ids):
+        id_placeholders = ",".join("?" * len(chunk))
+        conn.execute(
+            f"DELETE FROM code_units WHERE file_id IN ({id_placeholders})", chunk
+        )
+        conn.execute(f"DELETE FROM files WHERE id IN ({id_placeholders})", chunk)
 
 
 def upsert_file(conn: sqlite3.Connection, path: Path, mtime: float) -> UpsertResult:

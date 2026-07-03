@@ -1,5 +1,8 @@
 import sqlite3
 
+import pytest
+
+from slopo import db
 from slopo.indexing.db import (
     delete_file_units,
     delete_files,
@@ -60,6 +63,23 @@ def test_deletes_file_and_its_units(conn: sqlite3.Connection):
     insert_file_units(conn, file_id, [CodeUnit("dup", "body", 1, 2, 3, "hash")])
 
     delete_files(conn, [file_id])
+
+    assert conn.execute("SELECT COUNT(*) FROM files").fetchone()[0] == 0
+    assert conn.execute("SELECT COUNT(*) FROM code_units").fetchone()[0] == 0
+
+
+def test_deletes_files_spanning_multiple_chunks(
+    conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(db, "_MAX_SQL_VARIABLES", 2)
+    file_ids = []
+    for i in range(5):
+        conn.execute("INSERT INTO files (path, mtime) VALUES (?, 0)", (f"F{i}.java",))
+        file_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+        insert_file_units(conn, file_id, [CodeUnit("a", "body", 1, 2, 3, f"h{i}")])
+        file_ids.append(file_id)
+
+    delete_files(conn, file_ids)
 
     assert conn.execute("SELECT COUNT(*) FROM files").fetchone()[0] == 0
     assert conn.execute("SELECT COUNT(*) FROM code_units").fetchone()[0] == 0
