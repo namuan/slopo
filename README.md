@@ -10,7 +10,7 @@ For more high-level description of the problem and example LLM prompts see [slop
 
 ### Supported languages
 
-Python, TypeScript, JavaScript, Java, Kotlin, C#, Go, Rust
+Python, TypeScript, JavaScript, Java, Kotlin, C#, Go, Rust, PHP
 
 ## How it works
 

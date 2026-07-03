@@ -11,6 +11,7 @@ _LANG_MAP = {
     ".java": "java",
     ".js": "javascript",
     ".kt": "kotlin",
+    ".php": "php",
     ".py": "python",
     ".rs": "rust",
     ".ts": "typescript",
