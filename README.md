@@ -6,7 +6,7 @@ A lightweight CLI tool for detecting non-exact code duplication using embedding 
 
 It focuses on the similar code that is hardest to detect and most harmful: snippets written similarly, sitting far apart in the codebase, often spread across different modules or separated within a large file. Exact copy-paste is easy to spot by other tools, and duplicates that are close together are easy to spot by humans or AI.
 
-For more high-level description of the problem see [slopo.dev](https://slopo.dev/).
+For more high-level description of the problem and example LLM prompts see [slopo.dev](https://slopo.dev/).
 
 ### Supported languages
 
@@ -32,7 +32,13 @@ This example confirmed that code parsers for each language have a lot of duplica
 uv tool install slopo
 ```
 
-This command uses `uv` ([installing uv](https://docs.astral.sh/uv/getting-started/installation/)), a Python package manager, to install Slopo from [PyPI](https://pypi.org/project/slopo/) in an isolated virtual environment. No need to get Python separately.
+or upgrade to the latest version
+
+```bash
+uv tool upgrade slopo
+```
+
+This command uses `uv` ([installing uv](https://docs.astral.sh/uv/getting-started/installation/)), a Python package manager, to install/upgrade Slopo from [PyPI](https://pypi.org/project/slopo/) in an isolated virtual environment. No need to get Python separately.
 
 ### Setup
 

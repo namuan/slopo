@@ -8,12 +8,12 @@ authors = [{ name = "Rafal Kochanowski" }]
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "litellm~=1.89.2",
-    "numpy~=2.4.6",
+    "litellm~=1.90.2",
+    "numpy~=2.5.0",
     "pathspec~=1.1.1",
     "python-dotenv~=1.2.2",
     "pyyaml~=6.0.3",
-    "tree-sitter~=0.25.2",
+    "tree-sitter~=0.26.0",
     "tree-sitter-c-sharp~=0.23.5",
     "tree-sitter-go~=0.25.0",
     "tree-sitter-java~=0.23.5",
@@ -22,7 +22,7 @@ dependencies = [
     "tree-sitter-python~=0.25.0",
     "tree-sitter-rust~=0.24.2",
     "tree-sitter-typescript~=0.23.2",
-    "typer~=0.26.7",
+    "typer~=0.26.8",
 ]
 
 [project.urls]
@@ -43,5 +43,5 @@ extend-exclude = ["tests/indexing/parsing/lang/fixtures"]
 dev = [
     "mypy>=2.1.0",
     "pytest>=9.1.1",
-    "ruff>=0.15.18",
+    "ruff>=0.15.20",
 ]
