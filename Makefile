@@ -1,6 +1,7 @@
 .PHONY: install install-server serve init show-config index embed analyze \
         pipeline clean test lint typecheck help
 
+export UV_EXCLUDE_NEWER = 2026-07-05
 EMBED_PORT ?= 8000
 EMBED_MODEL ?= all-MiniLM-L6-v2
 
@@ -71,5 +72,7 @@ help:
 	@echo "  make typecheck       Run mypy type checker"
 	@echo ""
 	@echo "Environment variables:"
-	@echo "  EMBED_PORT=8000      Port for the local embedding server"
-	@echo "  EMBED_MODEL=all-MiniLM-L6-v2  Model name to serve"
+	@echo "  EMBED_PORT=8000                Port for the local embedding server"
+	@echo "  EMBED_MODEL=all-MiniLM-L6-v2        Model name to serve"
+	@echo "  UV_EXCLUDE_NEWER=2026-07-05         Cutoff for package resolution"
+	@echo "                                        (set to override global uv config)"
