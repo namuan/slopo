@@ -1,4 +1,4 @@
-![](https://raw.githubusercontent.com/rafal-qa/slopo/refs/heads/main/doc/logo.png)
+![](https://raw.githubusercontent.com/namuan/slopo/refs/heads/main/doc/logo.png)
 
 # Slopo
 
@@ -51,6 +51,53 @@ Embeddings are calculated using an external provider. For best results, consider
 You can use any model provider compatible with LiteLLM, [see details here](https://docs.litellm.ai/docs/embedding/supported_embedding).
 
 The provider API key can be set as an environment variable for better security.
+
+#### Local model via HuggingFace cache
+
+If you have a sentence-transformers model cached in `~/.cache/huggingface/hub/` (e.g. `sentence-transformers/all-MiniLM-L6-v2`), you can run Slopo entirely offline using the included local embedding server.
+
+```bash
+# Install extra dependencies for the local server
+make install-server
+
+# Start the server (loads the model from HF cache)
+make serve
+```
+
+The server exposes an OpenAI-compatible `/v1/embeddings` endpoint on port 8000. Configure Slopo to use it:
+
+```yaml
+# slopo.conf.yaml
+source_dir: ./src
+embedding_model: openai/all-MiniLM-L6-v2
+embedding_dimensions: 384
+embedding_api_key: placeholder
+```
+
+```bash
+export OPENAI_API_BASE=http://localhost:8000/v1
+export LITELLM_DROP_PARAMS=true
+
+slopo index
+slopo embed
+slopo analyze
+```
+
+**Model dimensions** for common cached models:
+
+| Model | Dimensions |
+|---|---|
+| `all-MiniLM-L6-v2` | 384 |
+| `all-mpnet-base-v2` | 768 |
+| `multi-qa-MiniLM-L6-cos-v1` | 384 |
+
+Override the model and port:
+
+```bash
+make serve EMBED_PORT=9000 EMBED_MODEL=mxbai-embed-large
+```
+
+See [local-embed-server.py](local-embed-server.py) for the server implementation.
 
 ### Analysis
 
