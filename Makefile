@@ -1,48 +1,38 @@
 .PHONY: install install-server serve init show-config index embed analyze \
-        pipeline clean test lint typecheck setup-env
+        pipeline clean test lint typecheck help
 
 EMBED_PORT ?= 8000
 EMBED_MODEL ?= all-MiniLM-L6-v2
-VENV := .venv
-PYTHON := $(VENV)/bin/python3
-UV := uv
 
 # ── Setup ────────────────────────────────────────────────────────
 
-install: $(VENV)
-	$(UV) sync
-
-$(VENV):
-	$(UV) venv
+install:
+	uv sync
 
 install-server: install
-	$(UV) pip install sentence-transformers fastapi uvicorn
+	uv add --dev sentence-transformers fastapi uvicorn
 
 # ── Local embedding server ───────────────────────────────────────
 
-serve: export OPENAI_API_BASE ?= http://localhost:$(EMBED_PORT)/v1
-serve: export LITELLM_DROP_PARAMS ?= true
 serve:
-	$(PYTHON) local-embed-server.py --port $(EMBED_PORT) --model $(EMBED_MODEL)
+	uv run local-embed-server.py --port $(EMBED_PORT) --model $(EMBED_MODEL)
 
-# ── Configuration ────────────────────────────────────────────────
+# ── Slopo commands ───────────────────────────────────────────────
 
 init:
-	$(UV) run slopo init
+	uv run slopo init
 
 show-config:
-	$(UV) run slopo show-config
-
-# ── Pipeline (requires running server + env vars set) ────────────
+	uv run slopo show-config
 
 index:
-	$(UV) run slopo index
+	uv run slopo index
 
 embed:
-	$(UV) run slopo embed
+	uv run slopo embed
 
 analyze:
-	$(UV) run slopo analyze
+	uv run slopo analyze
 
 pipeline: index embed analyze
 
@@ -54,19 +44,19 @@ clean:
 # ── Quality ──────────────────────────────────────────────────────
 
 test:
-	$(UV) run pytest
+	uv run pytest
 
 lint:
-	$(UV) run ruff check
+	uv run ruff check
 
 typecheck:
-	$(UV) run mypy src
+	uv run mypy src
 
 # ── Help ─────────────────────────────────────────────────────────
 
 help:
 	@echo "Usage:"
-	@echo "  make install         Create venv and install all dependencies"
+	@echo "  make install         Install all dependencies"
 	@echo "  make install-server  Also install deps for the local embedding server"
 	@echo "  make serve           Start local embedding server (port: $(EMBED_PORT))"
 	@echo "  make init            Create slopo.conf.yaml template"
