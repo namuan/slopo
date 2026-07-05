@@ -2,7 +2,7 @@
         pipeline clean test lint typecheck help
 
 export UV_EXCLUDE_NEWER = 2026-07-05
-EMBED_PORT ?= 8000
+EMBED_PORT ?= 8001
 EMBED_MODEL ?= all-MiniLM-L6-v2
 
 # ── Setup ────────────────────────────────────────────────────────

@@ -85,11 +85,11 @@ slopo analyze
 
 **Model dimensions** for common cached models:
 
-| Model | Dimensions |
-|---|---|
-| `all-MiniLM-L6-v2` | 384 |
-| `all-mpnet-base-v2` | 768 |
-| `multi-qa-MiniLM-L6-cos-v1` | 384 |
+| Model                       | Dimensions |
+| --------------------------- | ---------- |
+| `all-MiniLM-L6-v2`          | 384        |
+| `all-mpnet-base-v2`         | 768        |
+| `multi-qa-MiniLM-L6-cos-v1` | 384        |
 
 Override the model and port:
 
@@ -128,6 +128,7 @@ It utilizes incremental re-indexing (update index with changed files only) and `
 Run `slopo --help` and `slopo show-config` to explore it by yourself anytime.
 
 Most configuration is done with a configuration file with two exceptions:
+
 1. The location of the configuration file can be overridden with the `--config` option.
 2. The API key can be set with the `SLOPO_EMBEDDING_API_KEY` environment variable, also picked up from a `.env` file in the current directory.
 

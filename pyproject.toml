@@ -43,7 +43,10 @@ extend-exclude = ["tests/indexing/parsing/lang/fixtures"]
 
 [dependency-groups]
 dev = [
+    "fastapi>=0.139.0",
     "mypy>=2.1.0",
     "pytest>=9.1.1",
     "ruff>=0.15.20",
+    "sentence-transformers>=5.6.0",
+    "uvicorn>=0.50.0",
 ]
